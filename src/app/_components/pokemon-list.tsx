@@ -1,5 +1,6 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { PokemonSearchBox } from "./pokemon-search-box";
 import { getEvolutionMatches } from "./pokemon-search-utils";
 
@@ -10,9 +11,47 @@ type Props = {
 };
 
 export function PokemonList({ pokemons }: Props) {
+  const searchParams = useSearchParams();
+
   const [selectedType, setSelectedType] = useState<string>("");
   const [selectedGeneration, setSelectedGeneration] = useState<string>("");
   const [search, setSearch] = useState<string>("");
+
+  // Initialize state from URL params
+  useEffect(() => {
+    setSelectedType(searchParams.get('type') ?? '');
+    setSelectedGeneration(searchParams.get('generation') ?? '');
+    setSearch(searchParams.get('search') ?? '');
+  }, [searchParams]);
+
+  // Update URL when filters change (debounced)
+  const updateURL = (newType: string, newGeneration: string, newSearch: string) => {
+    const params = new URLSearchParams();
+    if (newType) params.set('type', newType);
+    if (newGeneration) params.set('generation', newGeneration);
+    if (newSearch) params.set('search', newSearch);
+
+    const queryString = params.toString();
+    const newURL = queryString ? `/?${queryString}` : '/';
+
+    // Use pushState directly to avoid re-renders
+    window.history.replaceState(null, '', newURL);
+  };
+
+  const handleTypeChange = (newType: string) => {
+    setSelectedType(newType);
+    updateURL(newType, selectedGeneration, search);
+  };
+
+  const handleGenerationChange = (newGeneration: string) => {
+    setSelectedGeneration(newGeneration);
+    updateURL(selectedType, newGeneration, search);
+  };
+
+  const handleSearchChange = (newSearch: string) => {
+    setSearch(newSearch);
+    updateURL(selectedType, selectedGeneration, newSearch);
+  };
 
   // Extract unique types and generations for filter options
   const availableTypes = useMemo(() => {
@@ -46,7 +85,7 @@ export function PokemonList({ pokemons }: Props) {
       {/* Filter Section */}
       <div className="mb-4 p-4 bg-white rounded-lg shadow">
         <div className="flex gap-4 items-center">
-          <PokemonSearchBox value={search} onChange={setSearch} />
+          <PokemonSearchBox value={search} onChange={handleSearchChange} />
           <div className="flex-1">
             <label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 mb-1">
               Type
@@ -54,7 +93,7 @@ export function PokemonList({ pokemons }: Props) {
             <select
               id="typeFilter"
               value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
+              onChange={(e) => handleTypeChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All types</option>
@@ -70,7 +109,7 @@ export function PokemonList({ pokemons }: Props) {
             <select
               id="genFilter"
               value={selectedGeneration}
-              onChange={(e) => setSelectedGeneration(e.target.value)}
+              onChange={(e) => handleGenerationChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All generations</option>
@@ -97,7 +136,16 @@ export function PokemonList({ pokemons }: Props) {
             {filteredPokemons.map((p, i) => (
               <tr
                 key={p.id}
-                className={`transition hover:bg-blue-50 ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                className={`transition hover:bg-blue-50 cursor-pointer ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                onClick={() => {
+                  const currentParams = new URLSearchParams();
+                  if (selectedType) currentParams.set('type', selectedType);
+                  if (selectedGeneration) currentParams.set('generation', selectedGeneration);
+                  if (search) currentParams.set('search', search);
+
+                  const returnUrl = currentParams.toString() ? `/?${currentParams.toString()}` : '/';
+                  window.location.href = `/pokemon/${p.name}?returnUrl=${encodeURIComponent(returnUrl)}`;
+                }}
               >
                 <td className="px-4 py-3 font-mono font-bold text-indigo-700">{p.id}</td>
                 <td className="px-4 py-3 flex items-center gap-3">

@@ -1,9 +1,8 @@
-import { api, HydrateClient } from "~/trpc/server";
-import { PokemonList } from "./_components/pokemon-list";
+import { Suspense } from "react";
+import { HydrateClient } from "~/trpc/server";
+import { PokemonListContainer } from "./_components/pokemon-list-container";
 
-export default async function Home() {
-  const pokemons = await api.pokemon.list();
-
+export default function Home() {
   return (
     <HydrateClient>
       <main className="min-h-screen bg-gradient-to-b from-[#f6f8fc] to-[#e0e7ef] text-gray-900 flex flex-col items-center py-10">
@@ -12,7 +11,9 @@ export default async function Home() {
             <h1 className="text-4xl font-bold">Pokémon List</h1>
           </header>
           <div className="flex-1 min-h-0">
-            <PokemonList pokemons={pokemons} />
+            <Suspense fallback={<div className="p-4">Loading...</div>}>
+              <PokemonListContainer />
+            </Suspense>
           </div>
         </div>
       </main>
