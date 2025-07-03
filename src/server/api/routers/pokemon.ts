@@ -1,11 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-type PokemonListItem = {
-  id: number;
-  name: string;
-  generation: string;
-  types: string[];
-};
+import type { Pokemon } from "~/app/_components/pokemon-types";
 
 type PokeApiListResponse = {
   results: { name: string; url: string }[];
@@ -22,7 +17,7 @@ type PokeApiSpecies = {
   generation?: { name: string };
 };
 
-async function fetchPokemonList(): Promise<PokemonListItem[]> {
+async function fetchPokemonList(): Promise<Pokemon[]> {
   const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=500");
   const data = (await res.json()) as PokeApiListResponse;
   const results = data.results;
@@ -47,7 +42,7 @@ async function fetchPokemonList(): Promise<PokemonListItem[]> {
         name: pokeData.name,
         generation: gen,
         types,
-      };
+      } as Pokemon;
     })
   );
   return detailed.sort((a, b) => a.id - b.id);

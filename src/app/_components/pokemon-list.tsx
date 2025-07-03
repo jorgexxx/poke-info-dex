@@ -1,14 +1,9 @@
 "use client";
-"use client";
-
 import { useState, useMemo } from "react";
+import { PokemonSearchBox } from "./pokemon-search-box";
+import { getEvolutionMatches } from "./pokemon-search-utils";
 
-type Pokemon = {
-  id: number;
-  name: string;
-  generation: string;
-  types: string[];
-};
+import type { Pokemon } from "./pokemon-types";
 
 type Props = {
   pokemons: Pokemon[];
@@ -17,11 +12,12 @@ type Props = {
 export function PokemonList({ pokemons }: Props) {
   const [selectedType, setSelectedType] = useState<string>("");
   const [selectedGeneration, setSelectedGeneration] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
 
   // Extract unique types and generations for filter options
   const availableTypes = useMemo(() => {
     const types = new Set<string>();
-    pokemons.forEach(pokemon => 
+    pokemons.forEach(pokemon =>
       pokemon.types.forEach(type => types.add(type))
     );
     return Array.from(types).sort();
@@ -33,19 +29,24 @@ export function PokemonList({ pokemons }: Props) {
     return Array.from(generations).sort();
   }, [pokemons]);
 
-  // Filter pokemons based on selected filters
-  const filteredPokemons = useMemo(() => {
-    return pokemons.filter(pokemon => {
+  // Filter pokemons based on selected filters and search
+  const filteredPokemons = useMemo<Pokemon[]>(() => {
+    const filtered: Pokemon[] = pokemons.filter((pokemon: Pokemon) => {
       const matchesType = !selectedType || pokemon.types.includes(selectedType);
       const matchesGeneration = !selectedGeneration || pokemon.generation === selectedGeneration;
       return matchesType && matchesGeneration;
     });
-  }, [pokemons, selectedType, selectedGeneration]);
+    if (search.trim() === "") return filtered;
+
+    return getEvolutionMatches(filtered, pokemons, search.trim());
+  }, [pokemons, selectedType, selectedGeneration, search]);
+
   return (
     <div className="h-full flex flex-col">
       {/* Filter Section */}
       <div className="mb-4 p-4 bg-white rounded-lg shadow">
         <div className="flex gap-4 items-center">
+          <PokemonSearchBox value={search} onChange={setSearch} />
           <div className="flex-1">
             <label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 mb-1">
               Type
@@ -84,42 +85,42 @@ export function PokemonList({ pokemons }: Props) {
       {/* Pokemon Table */}
       <div className="pokemon-scroll-area overflow-x-auto">
         <table className="min-w-full border-separate rounded-xl shadow bg-white">
-        <thead className="sticky top-0 z-10 bg-gray-100">
-          <tr>
-            <th className="px-4 py-3 text-gray-700 rounded-tl-xl text-lg font-semibold border-b bg-gray-100">ID</th>
-            <th className="px-4 py-3 text-gray-700 text-lg font-semibold border-b bg-gray-100">Name</th>
-            <th className="px-4 py-3 text-gray-700 text-lg font-semibold border-b bg-gray-100">Generation</th>
-            <th className="px-4 py-3 text-gray-700 rounded-tr-xl text-lg font-semibold border-b bg-gray-100">Types</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredPokemons.map((p, i) => (
-            <tr
-              key={p.id}
-              className={`transition hover:bg-blue-50 ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
-            >
-              <td className="px-4 py-3 font-mono font-bold text-indigo-700">{p.id}</td>
-              <td className="px-4 py-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center text-white font-bold text-lg shadow">
-                  {p.name[0] ? p.name[0].toUpperCase() : ''}
-                </div>
-                <span className="capitalize font-semibold text-gray-800 text-base">{p.name}</span>
-              </td>
-              <td className="px-4 py-3 capitalize text-gray-700 font-medium">{p.generation.replace("generation-", "")}</td>
-              <td className="px-4 py-3">
-                {p.types.map((t) => (
-                  <span
-                    key={t}
-                    className={`type-${t} rounded-full px-3 py-1 mr-2 text-xs font-semibold shadow type-badge`}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </td>
+          <thead className="sticky top-0 z-10 bg-gray-100">
+            <tr>
+              <th className="px-4 py-3 text-gray-700 rounded-tl-xl text-lg font-semibold border-b bg-gray-100">ID</th>
+              <th className="px-4 py-3 text-gray-700 text-lg font-semibold border-b bg-gray-100">Name</th>
+              <th className="px-4 py-3 text-gray-700 text-lg font-semibold border-b bg-gray-100">Generation</th>
+              <th className="px-4 py-3 text-gray-700 rounded-tr-xl text-lg font-semibold border-b bg-gray-100">Types</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredPokemons.map((p, i) => (
+              <tr
+                key={p.id}
+                className={`transition hover:bg-blue-50 ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+              >
+                <td className="px-4 py-3 font-mono font-bold text-indigo-700">{p.id}</td>
+                <td className="px-4 py-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center text-white font-bold text-lg shadow">
+                    {p.name[0] ? p.name[0].toUpperCase() : ''}
+                  </div>
+                  <span className="capitalize font-semibold text-gray-800 text-base">{p.name}</span>
+                </td>
+                <td className="px-4 py-3 capitalize text-gray-700 font-medium">{p.generation.replace("generation-", "")}</td>
+                <td className="px-4 py-3">
+                  {p.types.map((t) => (
+                    <span
+                      key={t}
+                      className={`type-${t} rounded-full px-3 py-1 mr-2 text-xs font-semibold shadow type-badge`}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
