@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { PokemonSearchBox } from "./pokemon-search-box";
-import { getEvolutionMatches } from "./pokemon-search-utils";
+import { filterPokemonsByTypeAndGeneration, getPokemonsByNameOrEvolution } from "./pokemon-search-utils";
 
 import type { Pokemon } from "./pokemon-types";
 
@@ -70,14 +70,14 @@ export function PokemonList({ pokemons }: Props) {
 
   // Filter pokemons based on selected filters and search
   const filteredPokemons = useMemo<Pokemon[]>(() => {
-    const filtered: Pokemon[] = pokemons.filter((pokemon: Pokemon) => {
-      const matchesType = !selectedType || pokemon.types.includes(selectedType);
-      const matchesGeneration = !selectedGeneration || pokemon.generation === selectedGeneration;
-      return matchesType && matchesGeneration;
-    });
+    const filtered = filterPokemonsByTypeAndGeneration(
+      pokemons,
+      selectedType,
+      selectedGeneration
+    );
     if (search.trim() === "") return filtered;
 
-    return getEvolutionMatches(filtered, pokemons, search.trim());
+    return getPokemonsByNameOrEvolution(pokemons, search.trim(), filtered);
   }, [pokemons, selectedType, selectedGeneration, search]);
 
   return (

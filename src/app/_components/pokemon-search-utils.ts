@@ -18,12 +18,19 @@ function getChainForName(name: string): string[] | undefined {
   return undefined;
 }
 
-export function getEvolutionMatches(
-  filtered: Pokemon[],
+/**
+ * Returns all pokemons matching the search string by name or by being in the same evolution chain as a match.
+ * @param allPokemons All available pokemons.
+ * @param search Search string.
+ * @param filtered Optional: restrict results to this filtered list.
+ */
+export function getPokemonsByNameOrEvolution(
   allPokemons: Pokemon[],
-  search: string
+  search: string,
+  filtered?: Pokemon[]
 ): Pokemon[] {
   const s = search.trim().toLowerCase();
+  if (!s) return filtered ?? allPokemons;
   // Find direct matches
   const direct = allPokemons.filter(p =>
     p.name.toLowerCase().includes(s)
@@ -34,11 +41,25 @@ export function getEvolutionMatches(
     const chain = getChainForName(p.name);
     if (chain) chain.forEach(n => evolutionNames.add(n));
   }
-  // If any evolution matches, show all in chain
-  if (evolutionNames.size > 0) {
-    return allPokemons.filter(p => evolutionNames.has(p.name.toLowerCase()))
-      .filter(p => filtered.some(f => f.id === p.id));
+  let result = allPokemons.filter(p => evolutionNames.has(p.name.toLowerCase()));
+  if (result.length === 0) {
+    result = allPokemons.filter(p => p.name.toLowerCase().includes(s));
   }
-  // Otherwise, fallback to normal search
-  return filtered.filter(p => p.name.toLowerCase().includes(s));
+  if (filtered) {
+    const filteredIds = new Set(filtered.map(f => f.id));
+    result = result.filter(p => filteredIds.has(p.id));
+  }
+  return result;
+}
+
+export function filterPokemonsByTypeAndGeneration(
+  pokemons: Pokemon[],
+  type: string,
+  generation: string
+): Pokemon[] {
+  return pokemons.filter(pokemon => {
+    const matchesType = !type || pokemon.types.includes(type);
+    const matchesGeneration = !generation || pokemon.generation === generation;
+    return matchesType && matchesGeneration;
+  });
 }
