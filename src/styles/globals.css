@@ -4,3 +4,78 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+
+/* Make the pokemon list table scrollable with fixed header */
+.pokemon-scroll-area {
+  height: 85%;
+  max-height:100%;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.pokemon-scroll-area table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.pokemon-scroll-area thead.sticky,
+.pokemon-scroll-area thead.sticky tr,
+.pokemon-scroll-area thead.sticky th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f3f4f6;
+}
+
+/* Pokémon type color tags (basic) */
+.type-grass { background: #78c850 !important; color: #fff !important; }
+.type-poison { background: #a040a0 !important; color: #fff !important; }
+.type-fire { background: #f08030 !important; color: #fff !important; }
+.type-water { background: #6890f0 !important; color: #fff !important; }
+.type-electric { background: #f8d030 !important; color: #444 !important; }
+.type-flying { background: #a890f0 !important; color: #fff !important; }
+.type-bug { background: #a8b820 !important; color: #fff !important; }
+.type-normal { background: #a8a878 !important; color: #fff !important; }
+.type-ground { background: #e0c068 !important; color: #444 !important; }
+.type-psychic { background: #f85888 !important; color: #fff !important; }
+.type-ice { background: #98d8d8 !important; color: #444 !important; }
+.type-dragon { background: #7038f8 !important; color: #fff !important; }
+.type-dark { background: #705848 !important; color: #fff !important; }
+.type-steel { background: #b8b8d0 !important; color: #444 !important; }
+.type-fairy { background: #ee99ac !important; color: #444 !important; }
+
+.type-badge {
+  box-shadow: 0 1px 4px rgba(80, 80, 120, 0.12);
+  border: 1.5px solid rgba(0,0,0,0.07);
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+  transition: transform 0.12s;
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 0.98em;
+  display: inline-block;
+  margin-right: 4px;
+}
+.type-badge:hover {
+  transform: scale(1.09) translateY(-2px);
+  filter: brightness(1.08);
+}
+
+/* Table style improvements */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th, td {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  font-weight: 600;
+  background: #f3f4f6;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
