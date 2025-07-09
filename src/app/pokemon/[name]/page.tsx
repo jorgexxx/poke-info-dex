@@ -2,9 +2,10 @@ import { notFound } from "next/navigation";
 import { api, HydrateClient } from "~/trpc/server";
 import { PokemonDetailsView } from "~/app/_components/pokemon-details-view";
 
-type Props = { params: { name: string } };
+type Props = { params: Promise<{ name: string }> };
 
-export default async function PokemonPage({ params }: Props) {
+export default async function PokemonPage(props: Props) {
+  const params = await props.params;
   const { name } = params;
   const details = await api.pokemon.details({ name });
   if (!details) notFound();
